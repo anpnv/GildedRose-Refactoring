@@ -1,3 +1,11 @@
+import { ItemService } from './service/item-service';
+import { ConjuredItem } from './model/conjured-item';
+import { BackstagePassesItem } from './model/backstage-passes-item';
+import { LegendaryItem } from './model/legendary-item';
+import { AgedBrieItem } from './model/aged-brie-item';
+import { ItemHandler } from "./handler/item-handler";
+import { CommonItem } from './model/common-item';
+
 export class Item {
     name: string;
     sellIn: number;
@@ -13,57 +21,34 @@ export class Item {
 export class GildedRose {
     items: Array<Item>;
 
+    private _itemType: {[name: string]: ItemHandler} = {
+        "Aged Brie" : new AgedBrieItem(),
+        "Legendary": new LegendaryItem(),
+        "Backstage" : new BackstagePassesItem(),
+        "Common": new CommonItem(),
+        "Conjured": new ConjuredItem(),
+    }
+
+    private _itemService : ItemService = new ItemService(this._itemType["Common"]);
+
     constructor(items = [] as Array<Item>) {
         this.items = items;
     }
 
-    updateQuality() {
-        for (let i = 0; i < this.items.length; i++) {
-            if (this.items[i].name != 'Aged Brie' && this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-                if (this.items[i].quality > 0) {
-                    if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                        this.items[i].quality = this.items[i].quality - 1
-                    }
-                }
-            } else {
-                if (this.items[i].quality < 50) {
-                    this.items[i].quality = this.items[i].quality + 1
-                    if (this.items[i].name == 'Backstage passes to a TAFKAL80ETC concert') {
-                        if (this.items[i].sellIn < 11) {
-                            if (this.items[i].quality < 50) {
-                                this.items[i].quality = this.items[i].quality + 1
-                            }
-                        }
-                        if (this.items[i].sellIn < 6) {
-                            if (this.items[i].quality < 50) {
-                                this.items[i].quality = this.items[i].quality + 1
-                            }
-                        }
-                    }
-                }
-            }
-            if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                this.items[i].sellIn = this.items[i].sellIn - 1;
-            }
-            if (this.items[i].sellIn < 0) {
-                if (this.items[i].name != 'Aged Brie') {
-                    if (this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-                        if (this.items[i].quality > 0) {
-                            if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                                this.items[i].quality = this.items[i].quality - 1
-                            }
-                        }
-                    } else {
-                        this.items[i].quality = this.items[i].quality - this.items[i].quality
-                    }
-                } else {
-                    if (this.items[i].quality < 50) {
-                        this.items[i].quality = this.items[i].quality + 1
-                    }
-                }
-            }
-        }
-
-        return this.items;
+    updateQuality() { 
+        return this.items.map((item: Item) => {
+            if (item.name.includes("Sulfuras")) {
+                this._itemService.itemUpdate = this._itemType["Legendary"];
+              } else if (item.name.includes("Aged Brie")) {
+                this._itemService.itemUpdate = this._itemType["Aged Brie"];
+              } else if (item.name.includes("Backstage")) {
+                this._itemService.itemUpdate = this._itemType["Backstage"];
+              } else if (item.name.includes("Conjured")) {
+                this._itemService.itemUpdate = this._itemType["Conjured"];
+              } else {
+                this._itemService.itemUpdate = this._itemType["Common"];
+              }
+              return this._itemService.updateQuality(item);
+        });
     }
 }
