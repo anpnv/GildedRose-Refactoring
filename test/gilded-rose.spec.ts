@@ -145,6 +145,6 @@ describe('Gilded Rose', function () {
             expect(items[0].quality).to.equal(0);
         });
         
-    })
+    });
 
 });
