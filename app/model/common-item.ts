@@ -8,7 +8,7 @@ export class CommonItem extends ItemHandler {
     } else {
       item.quality = Math.max(item.quality -1, this.MIN_QUALITY);
     }
-    item.sellIn -1;
+    item.sellIn -=1;
     return item;
   }
 }
